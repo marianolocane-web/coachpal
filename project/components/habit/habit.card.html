@@ -1,0 +1,55 @@
+<!-- @dsCard group="Components" viewport="700x760" name="Habit Tracking" subtitle="ProgressRing, StreakBadge, HabitRow, HabitCheckButton, DayMoodRing, IdentityVoteBar, HabitCard" -->
+<html>
+<head>
+  <link rel="stylesheet" href="../../styles.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="../../_ds_bundle.js"></script>
+  <style>body{margin:0;background:var(--color-bg-app);font-family:var(--font-body)}</style>
+</head>
+<body>
+  <div id="root" style="padding:20px"></div>
+  <script type="text/babel">
+    const { ProgressRing, StreakBadge, HabitRow, HabitCheckButton, DayMoodRing, IdentityVoteBar, HabitCard } = window.CoachPalDesignSystem_c83b94;
+    function Demo() {
+      const [habits, setHabits] = React.useState([
+        { id: 1, name: 'Meditar 10 min', time: '08:00', streak: 12, done: true, color: 'var(--color-brand-subtle)' },
+        { id: 2, name: 'Leer 20 páginas', time: '21:00', streak: 3, done: false, color: 'var(--color-accent-subtle)' },
+        { id: 3, name: 'Beber 2L de agua', time: 'Todo el día', streak: 0, done: false, color: 'var(--color-danger-subtle)' },
+      ]);
+      const toggle = (h) => setHabits((hs) => hs.map((x) => x.id === h.id ? { ...x, done: !x.done } : x));
+      return (
+        <div style={{display:'flex', flexDirection:'column', gap:20}}>
+          <div style={{display:'flex', gap:16, alignItems:'center'}}>
+            <ProgressRing progress={0.66} size={64}>2/3</ProgressRing>
+            <StreakBadge days={12} />
+            <StreakBadge days={100} size="lg" />
+            <HabitCheckButton done={false} />
+            <HabitCheckButton done={true} />
+          </div>
+          <div style={{background:'var(--color-bg-surface)', borderRadius:14, padding:'4px 16px', boxShadow:'var(--shadow-sm)'}}>
+            {habits.map((h) => <HabitRow key={h.id} habit={h} onToggle={toggle} />)}
+          </div>
+          <div style={{display:'flex', gap:10}}>
+            <DayMoodRing label="19-03" emoji="😊" progress={0.85} />
+            <DayMoodRing label="18-03" emoji="😐" progress={0.6} />
+            <DayMoodRing label="17-03" emoji="😢" progress={0.3} />
+            <DayMoodRing label="Hoy" progress={0} alert />
+          </div>
+          <div style={{width:280}}>
+            <IdentityVoteBar negativeEmoji="🤯" positiveEmoji="🧘‍♂️" votes={7} />
+          </div>
+          <div style={{width:320}}>
+            <HabitCard habit={{ name: 'Meditar 10 min', streak: 12, time: '08:00', done: false, overdue: true, identity: { negativeEmoji: '🤯', positiveEmoji: '🧘‍♂️', votes: 7 } }} />
+          </div>
+          <div style={{width:320}}>
+            <HabitCard habit={{ name: 'Beber 2L de agua', time: 'Todo el día', done: false, missed: true }} />
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!-- @dsCard group="CoachPal App" viewport="390x780" name="Stats / Progress" subtitle="Progreso semanal, rachas y desglose por hábito" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>CoachPal — Stats</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; background: var(--sand-200); font-family: var(--font-body); }
+  #stage { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 0; }
+  .phone {
+    width: 390px; height: 780px; background: var(--color-bg-app); border-radius: 44px;
+    box-shadow: var(--shadow-lg); overflow: hidden; position: relative; border: 8px solid var(--sand-900);
+  }
+</style>
+</head>
+<body>
+  <div id="stage"><div id="root"></div></div>
+  <script type="text/babel" src="StatsScreen.jsx"></script>
+  <script type="text/babel" data-presets="react">
+    const habits = [
+      { id: 1, name: 'Meditar 10 min', time: '08:00', streak: 12, done: true, category: 'Bienestar', icon: '🧘' },
+      { id: 2, name: 'Leer 20 páginas', time: '21:00', streak: 3, done: false, category: 'Aprendizaje', icon: '📖' },
+      { id: 3, name: 'Beber 2L de agua', time: 'Todo el día', streak: 0, done: false, category: 'Salud', icon: '💧' },
+      { id: 4, name: 'Estirar 5 min', time: '07:30', streak: 27, done: true, category: 'Salud', icon: '🤸' },
+    ];
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      <div className="phone"><StatsScreen habits={habits} /></div>
+    );
+  </script>
+</body>
+</html>

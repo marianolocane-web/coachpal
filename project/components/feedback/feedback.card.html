@@ -1,0 +1,41 @@
+<!-- @dsCard group="Components" viewport="700x260" name="Feedback" subtitle="Badge, Toast, Tooltip" -->
+<html>
+<head>
+  <link rel="stylesheet" href="../../styles.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="../../_ds_bundle.js"></script>
+  <style>body{margin:0;background:var(--color-bg-app);font-family:var(--font-body)}</style>
+</head>
+<body>
+  <div id="root" style="padding:20px"></div>
+  <script type="text/babel">
+    const { Badge, Toast, Tooltip, IconButton } = window.CoachPalDesignSystem_c83b94;
+    function Demo() {
+      return (
+        <div style={{display:'flex', flexDirection:'column', gap:16}}>
+          <div style={{display:'flex', gap:8}}>
+            <Badge variant="neutral">General</Badge>
+            <Badge variant="brand">Salud</Badge>
+            <Badge variant="accent">Racha 🔥</Badge>
+            <Badge variant="danger">Pendiente</Badge>
+          </div>
+          <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
+            <Toast message="¡Hecho! Llevas 7 días seguidos." variant="success" autoHideMs={0} />
+            <Toast message="🎉 100 días seguidos meditando." variant="info" autoHideMs={0} />
+            <Toast message="Se te pasó ayer." variant="danger" autoHideMs={0} />
+          </div>
+          <div>
+            <Tooltip label="Editar hábito" side="bottom">
+              <IconButton label="Editar" variant="secondary" icon={<span>✎</span>} />
+            </Tooltip>
+            <span style={{marginLeft:10, font:'var(--text-caption)', color:'var(--color-text-tertiary)'}}>← hover para ver tooltip</span>
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+  </script>
+</body>
+</html>

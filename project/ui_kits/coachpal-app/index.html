@@ -1,0 +1,140 @@
+<!-- @dsCard group="CoachPal App" viewport="420x780" name="App (click-through)" subtitle="Onboarding → Home → Detalle → Perfil" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>CoachPal — UI Kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; background: var(--sand-200); font-family: var(--font-body); }
+  #stage { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 0; }
+  .phone {
+    width: 390px; height: 780px; background: var(--color-bg-app); border-radius: 44px;
+    box-shadow: var(--shadow-lg); overflow: hidden; position: relative; border: 8px solid var(--sand-900);
+  }
+</style>
+</head>
+<body>
+  <div id="stage"><div id="root"></div></div>
+  <script type="text/babel" src="OnboardingScreen.jsx"></script>
+  <script type="text/babel" src="TabBar.jsx"></script>
+  <script type="text/babel" src="HomeScreen.jsx"></script>
+  <script type="text/babel" src="HabitsListScreen.jsx"></script>
+  <script type="text/babel" src="CalendarScreen.jsx"></script>
+  <script type="text/babel" src="HabitCharts.jsx"></script>
+  <script type="text/babel" src="GeneralStatsScreen.jsx"></script>
+  <script type="text/babel" src="DayDetailScreen.jsx"></script>
+  <script type="text/babel" src="StatsScreen.jsx"></script>
+  <script type="text/babel" src="HabitDetailScreen.jsx"></script>
+  <script type="text/babel" src="AddEditHabitScreen.jsx"></script>
+  <script type="text/babel" src="ProfileScreen.jsx"></script>
+  <script type="text/babel" data-presets="react">
+    const { useState } = React;
+    const habitsSeed = [
+      { id: 1, name: 'Meditar 10 min', time: '08:00', streak: 12, done: true, color: 'var(--color-brand-subtle)', category: 'Bienestar', icon: '🧘', tags: ['Bienestar', 'Mañana'], status: 'Activo',
+        goalLabel: 'Constancia', goalValue: '', goalDate: '',
+        charts: ['Everest'], streakGoal: 21,
+        commentHistory: [
+          { date: '04/07', text: 'Me costó pero lo logré antes de dormir.' },
+          { date: '02/07', text: 'Muy relajante hoy, 15 minutos en vez de 10.' },
+          { date: '28/06', text: 'Se me pasó el horario, lo hice de noche.' },
+        ],
+        identity: { negativeEmoji: '🤯', positiveEmoji: '🧘‍♂️', votes: 7 } },
+      { id: 2, name: 'Leer 20 páginas', time: '21:00', streak: 3, done: false, color: 'var(--color-accent-subtle)', category: 'Aprendizaje', icon: '📖', overdue: false, tags: ['Aprendizaje', 'Noche'], status: 'Activo',
+        charts: ['Valor diario'], unit: 'páginas',
+        identity: { negativeEmoji: '📵', positiveEmoji: '📚', votes: 2 } },
+      { id: 3, name: 'Beber 2L de agua', time: 'Todo el día', streak: 0, done: false, color: 'var(--color-danger-subtle)', category: 'Salud', icon: '💧', tags: ['Salud'], status: 'Activo',
+        charts: ['Termómetro'], goalLabel: 'Meta diaria', goalValue: '2', goalCurrent: '1.3', unit: 'L',
+        identity: { negativeEmoji: '🥤', positiveEmoji: '💧', votes: -1 } },
+      { id: 4, name: 'Estirar 5 min', time: '07:30', streak: 27, done: true, color: 'var(--color-brand-subtle)', category: 'Salud', icon: '🤸', tags: ['Salud', 'Mañana'], status: 'Activo',
+        goalLabel: 'Pesar', goalValue: '90', goalCurrent: '78', unit: 'kgs', goalDate: '31/12/2026',
+        charts: ['Everest', 'Promedio semanal'], streakGoal: 30,
+        identity: { negativeEmoji: '🪑', positiveEmoji: '🤸', votes: 15 } },
+    ];
+    const dayHistory = [
+      { label: '02-07', date: 'Mié, 2 Jul, 2026', emoji: '😊', progress: 0.85 },
+      { label: '03-07', date: 'Jue, 3 Jul, 2026', emoji: '😐', progress: 0.6 },
+      { label: '04-07', date: 'Vie, 4 Jul, 2026', emoji: '😢', progress: 0.3 },
+      { label: '05-07', date: 'Sáb, 5 Jul, 2026', emoji: null, progress: 0, alert: true },
+    ];
+    const quote = 'Pequeñas acciones, tomadas consistentemente, crean resultados extraordinarios.';
+    const user = { name: 'Marta', longestStreak: 47, totalDays: 132, habitsActive: habitsSeed.length };
+
+    function App() {
+      const [screen, setScreen] = useState('onboarding');
+      const [tab, setTab] = useState('home');
+      const [habits, setHabits] = useState(habitsSeed);
+      const [activeHabit, setActiveHabit] = useState(null);
+      const [editingHabit, setEditingHabit] = useState(null);
+      const [activeDay, setActiveDay] = useState(null);
+
+      const toggleHabit = (h) => setHabits((hs) => hs.map((x) => x.id === h.id ? { ...x, done: !x.done } : x));
+      const TODAY_LABEL = '08/07';
+      const saveComment = (h, text) => setHabits((hs) => hs.map((x) => {
+        if (x.id !== h.id) return x;
+        const history = (x.commentHistory || []).filter((c) => c.date !== TODAY_LABEL);
+        return { ...x, comment: text, commentHistory: text ? [{ date: TODAY_LABEL, text }, ...history] : history };
+      }));
+      const deleteHabit = (h) => { setHabits((hs) => hs.filter((x) => x.id !== h.id)); setScreen('main'); };
+      const duplicateHabit = (h) => { setEditingHabit({ ...h, id: null, name: `Copia de ${h.name}` }); setScreen('edit'); };
+      const saveHabit = (h) => {
+        if (h.id) {
+          setHabits((hs) => hs.map((x) => x.id === h.id ? { ...x, ...h } : x));
+        } else {
+          setHabits((hs) => [...hs, { ...h, id: Date.now(), done: false, streak: 0, icon: '✨' }]);
+        }
+        setScreen('main');
+      };
+
+      if (screen === 'onboarding') {
+        return <OnboardingScreen onFinish={() => setScreen('main')} />;
+      }
+      if (screen === 'detail') {
+        return <HabitDetailScreen habit={activeHabit} onBack={() => setScreen('main')} onEdit={() => { setEditingHabit(activeHabit); setScreen('edit'); }} onDelete={deleteHabit} />;
+      }
+      if (screen === 'day') {
+        return <DayDetailScreen day={activeDay} onBack={() => setScreen('main')} />;
+      }
+      if (screen === 'habitsList') {
+        return <HabitsListScreen habits={habits} onBack={() => setScreen('main')} onOpenHabit={(h) => { setEditingHabit(h); setScreen('edit'); }} onOpenStats={(h) => { setActiveHabit(h); setScreen('detail'); }} onAddHabit={() => setScreen('add')} />;
+      }
+      if (screen === 'calendar') {
+        return <CalendarScreen habits={habits} onBack={() => setScreen('main')} onOpenDay={(d) => { setActiveDay(d); setScreen('day'); }} />;
+      }
+      if (screen === 'add' || screen === 'edit') {
+        return <AddEditHabitScreen habit={screen === 'edit' ? editingHabit : null} onBack={() => setScreen('main')} onSave={saveHabit} onDelete={deleteHabit} onDuplicate={duplicateHabit} />;
+      }
+
+      return (
+        <div style={{ height: '100%', position: 'relative' }}>
+          {tab === 'home' && (
+            <HomeScreen
+              habits={habits}
+              onToggle={toggleHabit}
+              onOpenHabit={(h) => { setActiveHabit(h); setScreen('detail'); }}
+              onAddHabit={() => setScreen('add')}
+              onOpenDay={(d) => { setActiveDay(d || dayHistory[dayHistory.length - 1]); setScreen('day'); }}
+              onOpenAllHabits={() => setScreen('habitsList')}
+              onOpenCalendar={() => setScreen('calendar')}
+              onSaveComment={saveComment}
+              dayHistory={dayHistory}
+              quote={quote}
+            />
+          )}
+          {tab === 'stats' && <GeneralStatsScreen habits={habits} onBack={() => setTab('home')} onOpenHabit={(h) => { setActiveHabit(h); setScreen('detail'); }} />}
+          {tab === 'profile' && <ProfileScreen user={user} />}
+          <TabBar active={tab} onChange={setTab} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      <div className="phone"><App /></div>
+    );
+  </script>
+</body>
+</html>
