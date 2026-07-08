@@ -1,0 +1,84 @@
+:root {
+  /* ---- Base palette ---- */
+  /* Green — growth, consistency, "on track" */
+  --green-50:  #F0F7F1;
+  --green-100: #DCEEDF;
+  --green-200: #B7DCBE;
+  --green-300: #8AC496;
+  --green-400: #5CA96B;
+  --green-500: #2F6F4F;  /* primary */
+  --green-600: #265C41;
+  --green-700: #1D4833;
+  --green-800: #143526;
+  --green-900: #0C2118;
+
+  /* Warm amber — energy, streaks, celebration */
+  --amber-50:  #FFF7EA;
+  --amber-100: #FCEBC9;
+  --amber-200: #F8D690;
+  --amber-300: #F2BE5C;
+  --amber-400: #E8A33D;  /* primary accent */
+  --amber-500: #D68B24;
+  --amber-600: #B06F17;
+  --amber-700: #855313;
+  --amber-800: #593810;
+
+  /* Coral — misses, alerts, gentle warnings (never harsh red) */
+  --coral-50:  #FDF1EE;
+  --coral-100: #FADCD3;
+  --coral-300: #EFA793;
+  --coral-500: #DE6A4C;
+  --coral-600: #C1543A;
+  --coral-700: #96402C;
+
+  /* Neutrals — warm paper tones, not cold grays */
+  --sand-0:   #FFFFFF;
+  --sand-25:  #FDFBF7;
+  --sand-50:  #F7F3EC;
+  --sand-100: #F5F1EA;  /* app background */
+  --sand-200: #E9E2D4;
+  --sand-300: #D9CFBC;
+  --sand-400: #BDB09A;
+  --sand-500: #998C76;
+  --sand-600: #766B59;
+  --sand-700: #574F41;
+  --sand-800: #3A342A;
+  --sand-900: #241F19;  /* near-black text */
+
+  /* ---- Semantic aliases ---- */
+  --color-bg-app:        var(--sand-100);
+  --color-bg-surface:    var(--sand-0);
+  --color-bg-surface-2:  var(--sand-50);
+  --color-bg-sunken:     var(--sand-200);
+  --color-bg-inverse:    var(--sand-900);
+
+  --color-text-primary:   var(--sand-900);
+  --color-text-secondary: var(--sand-600);
+  --color-text-tertiary:  var(--sand-500);
+  --color-text-on-brand:  var(--sand-0);
+  --color-text-link:      var(--green-600);
+
+  --color-border-subtle: var(--sand-200);
+  --color-border-default:var(--sand-300);
+  --color-border-strong: var(--sand-400);
+
+  --color-brand:          var(--green-500);
+  --color-brand-hover:    var(--green-600);
+  --color-brand-active:   var(--green-700);
+  --color-brand-subtle:   var(--green-50);
+  --color-brand-border:   var(--green-200);
+
+  --color-accent:         var(--amber-400);
+  --color-accent-hover:   var(--amber-500);
+  --color-accent-subtle:  var(--amber-50);
+
+  --color-success:        var(--green-500);
+  --color-success-subtle: var(--green-50);
+  --color-warning:        var(--amber-400);
+  --color-warning-subtle: var(--amber-50);
+  --color-danger:         var(--coral-500);
+  --color-danger-hover:   var(--coral-600);
+  --color-danger-subtle:  var(--coral-50);
+
+  --color-focus-ring: var(--green-400);
+}

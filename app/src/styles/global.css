@@ -1,0 +1,49 @@
+@import './colors.css';
+@import './typography.css';
+@import './spacing.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--sand-200);
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+}
+
+/* Mobile-first shell: full-bleed on real phones, centered card on wide viewports.
+   `height` (not `min-height`) so percentage-height screens inside can fill it. */
+.app-shell {
+  width: 100%;
+  max-width: var(--mobile-max-width);
+  height: 100dvh;
+  background: var(--color-bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    height: min(860px, 100dvh);
+    margin: var(--space-7) 0;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
+}
