@@ -59,7 +59,41 @@ Production implementation of the CoachPal design system's `ui_kits/coachpal-app`
 4. Redeploy (or restart `npm run dev`) after adding the keys so the
    serverless functions pick them up.
 
-## 3. Run the app
+## 3. Diario por Telegram setup (optional — "mini entradas" on the go)
+
+Lets you text or send voice notes to a Telegram bot; the companion replies in Telegram, and the whole
+exchange is saved as a Diario entry (`diario_entries.source = 'telegram'`), visible in the app like any other.
+
+1. In the SQL Editor, run `supabase/migrations/0003_diario_storage_policies.sql` (Storage RLS policies for the
+   `diario-audio` bucket — needed for audio uploads from *either* channel, app or Telegram) and
+   `supabase/migrations/0004_diario_telegram.sql` (adds `user_settings.telegram_chat_id`, `diario_entries.source`,
+   and the `telegram_link_tokens` table used by the "Conectar Telegram" flow in Perfil).
+2. Create a bot with **[@BotFather](https://t.me/BotFather)** on Telegram: `/newbot`, pick a name and a
+   `@username`. Save the token it gives you and the username.
+3. Add 4 more environment variables (server-side, except the last one):
+   - `TELEGRAM_BOT_TOKEN` — from BotFather.
+   - `TELEGRAM_WEBHOOK_SECRET` — any random string you make up yourself (e.g. `openssl rand -hex 32`); verifies
+     incoming requests are really from Telegram, not a public-URL guesser.
+   - `SUPABASE_SERVICE_ROLE_KEY` — **Project Settings → API → service_role** in Supabase. Used only by
+     `api/telegram-webhook.ts`, since Telegram calls it directly with no browser session to scope RLS by — every
+     function it calls still re-checks the resolved `userId` against the entry's owner explicitly, since that
+     check is the only thing enforcing per-user isolation on this path. Never expose this key to the browser.
+   - `VITE_TELEGRAM_BOT_USERNAME` — the bot's `@username` (without the `@`). This one *is* client-side (bot
+     usernames are public) — it's how Perfil builds the `t.me/<username>?start=<token>` deep link.
+4. Redeploy so the functions and the frontend pick up the new variables.
+5. Register the webhook with Telegram (run once, replace both placeholders):
+
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+     -d "url=https://coachpal.xyz/api/telegram-webhook" \
+     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+6. In the app, go to **Perfil → Diario por Telegram → "Conectar Telegram"**, open the link it gives you, and
+   send `/start` in Telegram if it doesn't fire automatically. From then on, any text or voice message you send
+   the bot becomes (or continues) a Diario entry; send **"guardar"** whenever you want to close and save it.
+
+## 4. Run the app
 
 ```bash
 npm install
@@ -107,13 +141,20 @@ src/
 api/
   _lib/            server-only helpers: claude.ts (Anthropic + tool-use), voyage.ts (embeddings), groq.ts
                     (transcription), context.ts (cross-module "one brain" context builder), supabaseServer.ts
-                    (RLS-scoped client built from the caller's own access token — no service role key used)
-  diario/          transcribe, chat, finalize, pick-day-mood, embed-query — thin stateless proxies to the
-                   three AI providers; every actual database read/write still happens from the frontend via
-                   diarioApi.ts, same pattern as the rest of the app
+                    (RLS-scoped client from the caller's own access token, used by the browser-facing endpoints),
+                    supabaseAdmin.ts (service-role client, used only by telegram-webhook.ts), telegram.ts
+                    (sendMessage / voice download), diarioCore.ts (transport-agnostic conversation/finalization
+                    logic shared by both the HTTP endpoints and the Telegram webhook)
+  diario/          transcribe, chat, finalize, pick-day-mood, embed-query — thin per-request wrappers around
+                    diarioCore.ts; every actual database read/write for the in-app flow still happens from the
+                    frontend via diarioApi.ts, same pattern as the rest of the app
+  telegram-webhook.ts   receives Telegram updates directly (no browser session) — resolves chat_id -> userId,
+                        calls the same diarioCore.ts functions with a service-role client, replies via Telegram
 supabase/
-  migrations/0001_init.sql            habits/habit_logs/units/day_moods schema + RLS policies
-  migrations/0002_diario.sql          user_settings, diario_entries/messages/comments, pgvector, semantic search RPC
+  migrations/0001_init.sql                       habits/habit_logs/units/day_moods schema + RLS policies
+  migrations/0002_diario.sql                     user_settings, diario_entries/messages/comments, pgvector, semantic search RPC
+  migrations/0003_diario_storage_policies.sql    RLS policies for the diario-audio Storage bucket (app + Telegram uploads)
+  migrations/0004_diario_telegram.sql            telegram_chat_id, diario_entries.source, telegram_link_tokens
 ```
 
 Every screen reads and writes through `lib/data/hooks.ts` — there is no mock
@@ -143,6 +184,15 @@ data path in the shipped app; the only synthetic data is what
   `to_tsvector` isn't `IMMUTABLE` so it can't live in a `generated always as` column, hence the trigger instead of a
   generated column). Semantic search embeds the query with Voyage and calls the `diario_semantic_search` RPC, which
   runs as the calling user (`security invoker`) so RLS still scopes results to their own entries.
+- **Via Telegram**: a linked chat (`user_settings.telegram_chat_id`, set through a one-time deep-link token from
+  Perfil) can open/continue a `source='telegram'` entry by sending text or voice notes — same `diarioCore.ts`
+  functions as the in-app chat, so the same persona, context, transcription and finalization logic applies. Unlike
+  the app (an explicit "Finalizar entrada" button), Telegram entries stay open across multiple messages until the
+  user types **"guardar"**, which triggers finalization *and* persistence *and* day-mood reconciliation all in the
+  same webhook call (the app instead does those as separate steps driven by the frontend, since there the browser
+  is available to do them) — every reply appends a reminder of that command. Entries made this way show a "vía
+  Telegram" badge in the list and detail screens, and are otherwise indistinguishable from ones made in the app —
+  same tables, same search, same immutability rules.
 
 ## Deviations from the design prototype (and why)
 
@@ -182,21 +232,36 @@ data path in the shipped app; the only synthetic data is what
   There's still no *standalone* quick mood picker outside the Diario flow
   (e.g. a lightweight "¿cómo te sientes hoy?" tap on Home) if you want one
   independent of writing a full entry.
-- **Diario AI has not been exercised end-to-end against live
-  Anthropic/Groq/Voyage APIs** (this environment has no outbound network
-  access to those hosts, confirmed while building it). The code path, tool
-  schemas, and RLS policies were written and reviewed carefully, but you are
-  the first real test — walk through: connect the 3 API keys → create an
-  entry with typed text → one with a live-recorded voice note → one
-  attaching an `.m4a` file exported from iPhone Voice Memos → finalize each
-  → confirm the Home/Calendar mood ring updates → try keyword and semantic
-  search → reread an old entry, add a comment, archive it. Report anything
-  that breaks.
+- **In-app Diario flow has been exercised end-to-end against live
+  Anthropic/Groq/Voyage APIs** (text, live-recorded audio, and imported
+  `.m4a` files, plus finalize/search) — this environment itself has no
+  outbound network access to those hosts, so all of that testing happened
+  live in production with the app's actual user. Two real bugs were caught
+  and fixed this way that no amount of local type-checking would have
+  caught: (1) `api/*` functions crashing at runtime with
+  `ERR_MODULE_NOT_FOUND` because Node's native ESM loader (this package is
+  `"type": "module"`) requires explicit `.js` extensions on relative
+  imports, which esbuild-based bundlers don't enforce; (2) audio uploads
+  failing RLS because a fresh Storage bucket ships with zero policies until
+  you add them (`0003_diario_storage_policies.sql`). If you extend `api/`
+  further, watch for both.
+- **Diario via Telegram has not been exercised end-to-end yet** — same
+  network limitation, but this path is newer and untested even by proxy
+  (no prior similar feature to have already shaken out its bugs). Walk
+  through: BotFather setup → the 4 new env vars → `setWebhook` → "Conectar
+  Telegram" in Perfil → send text, then a voice note → send "guardar" →
+  confirm the entry shows up in the app's Diario list with the "vía
+  Telegram" badge, and that the mood ring updated. Report anything that
+  breaks — the `ERR_MODULE_NOT_FOUND`-style failure mode above is exactly
+  the kind of thing to watch for again in `telegram-webhook.ts` and its new
+  `_lib` modules, even though it was verified with the same
+  compile-and-dynamically-import smoke test before pushing.
 - **Migration numbering**: `0002_diario.sql` creates `user_settings` itself
   (timezone + `diario_persona_prompt`) since no other module had created it
-  yet. If the separate Telegram/habit-coach plans are implemented later,
-  their own migrations should `alter table user_settings add column ...`
-  rather than recreating the table — check what already exists first.
+  yet; `0004_diario_telegram.sql` extends it with `telegram_chat_id`. If the
+  separate habit-coach plan (`ai-integration-plan.md`) is implemented later,
+  its migration should `alter table user_settings add column ...` rather
+  than recreating the table — check what already exists first.
 - **Storage bucket `diario-audio` must be created manually** in the Supabase
   dashboard (see setup step above) — it isn't created by the SQL migration,
   since bucket creation isn't a plain SQL statement in Supabase.

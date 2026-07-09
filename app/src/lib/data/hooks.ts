@@ -236,3 +236,28 @@ export function useSetDiarioPersonaPrompt() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['diarioPersonaPrompt'] }),
   });
 }
+
+export function useTelegramConnection() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['telegramConnection', user?.id],
+    queryFn: () => diarioApi.getTelegramConnectionStatus(user!.id),
+    enabled: !!user,
+  });
+}
+
+export function useGenerateTelegramLinkLink() {
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: () => diarioApi.generateTelegramLinkLink(user!.id),
+  });
+}
+
+export function useDisconnectTelegram() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => diarioApi.disconnectTelegram(user!.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['telegramConnection'] }),
+  });
+}

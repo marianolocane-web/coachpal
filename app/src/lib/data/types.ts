@@ -186,6 +186,7 @@ export function moodFromRow(row: any): DayMood {
 // ---- Diario AI ----
 
 export type DiaryEntryStatus = 'in_progress' | 'active' | 'archived';
+export type DiaryEntrySource = 'app' | 'telegram';
 export type DiaryMessageRole = 'user' | 'assistant';
 export type DiaryMessageContentType = 'text' | 'audio';
 
@@ -193,6 +194,7 @@ export interface DiaryEntry {
   id: string;
   userId: string;
   status: DiaryEntryStatus;
+  source: DiaryEntrySource;
   title: string | null;
   entryDate: string;
   summaryMarkdown: string | null;
@@ -237,6 +239,7 @@ export function diaryEntryFromRow(row: any): DiaryEntry {
     id: row.id,
     userId: row.user_id,
     status: row.status,
+    source: row.source || 'app',
     title: row.title,
     entryDate: row.entry_date,
     summaryMarkdown: row.summary_markdown,

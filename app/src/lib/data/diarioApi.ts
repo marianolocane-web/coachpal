@@ -264,3 +264,25 @@ export async function setDiarioPersonaPrompt(userId: string, prompt: string | nu
     .upsert({ user_id: userId, diario_persona_prompt: prompt }, { onConflict: 'user_id' });
   if (error) throw error;
 }
+
+// ---- Telegram linking (Diario "mini entradas" on the go) ----
+
+export async function getTelegramConnectionStatus(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from('user_settings').select('telegram_chat_id').eq('user_id', userId).maybeSingle();
+  if (error) throw error;
+  return !!data?.telegram_chat_id;
+}
+
+/** Creates a one-time link token and returns the full t.me deep link to open in Telegram. */
+export async function generateTelegramLinkLink(userId: string): Promise<string> {
+  const { data, error } = await supabase.from('telegram_link_tokens').insert({ user_id: userId }).select('token').single();
+  if (error) throw error;
+  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined;
+  if (!botUsername) throw new Error('Missing VITE_TELEGRAM_BOT_USERNAME');
+  return `https://t.me/${botUsername}?start=${data.token}`;
+}
+
+export async function disconnectTelegram(userId: string): Promise<void> {
+  const { error } = await supabase.from('user_settings').update({ telegram_chat_id: null }).eq('user_id', userId);
+  if (error) throw error;
+}

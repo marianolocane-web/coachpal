@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { useDiarioPersonaPrompt, useHabits, useLogsRange, useSeedDemoData, useSetDiarioPersonaPrompt } from '../lib/data/hooks';
+import {
+  useDiarioPersonaPrompt,
+  useDisconnectTelegram,
+  useGenerateTelegramLinkLink,
+  useHabits,
+  useLogsRange,
+  useSeedDemoData,
+  useSetDiarioPersonaPrompt,
+  useTelegramConnection,
+} from '../lib/data/hooks';
 import { computeLongestStreak } from '../lib/data/stats';
 import { addDays, isoDate, startOfDay } from '../lib/data/dateUtils';
 import { DEFAULT_DIARIO_PERSONA } from '../lib/data/diarioPersonaDefault';
@@ -26,6 +35,11 @@ export function ProfileScreen() {
   useEffect(() => {
     setPersonaDraft(personaPrompt || DEFAULT_DIARIO_PERSONA);
   }, [personaPrompt]);
+
+  const { data: telegramConnected } = useTelegramConnection();
+  const generateTelegramLink = useGenerateTelegramLinkLink();
+  const disconnectTelegram = useDisconnectTelegram();
+  const [telegramLink, setTelegramLink] = useState<string | null>(null);
 
   const logsByHabitId = useMemo(() => {
     const m = new Map<string, typeof logs>();
@@ -118,6 +132,56 @@ export function ProfileScreen() {
               {setPersonaPrompt.isPending ? 'Guardando…' : 'Guardar'}
             </Button>
           </div>
+        </div>
+
+        <div style={{ marginTop: 'var(--space-7)', font: 'var(--text-label-md)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wide)' }}>
+          Diario por Telegram
+        </div>
+        <div style={{ marginTop: 'var(--space-3)', background: 'var(--color-bg-surface)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div style={{ font: 'var(--text-body-sm)', color: 'var(--color-text-secondary)' }}>
+            Mandale un audio o mensaje al bot cuando estés "on the go" — el acompañante te responde ahí mismo y la
+            entrada queda guardada en tu Diario. Escribí <strong>"guardar"</strong> cuando quieras cerrarla.
+          </div>
+
+          {telegramConnected ? (
+            <>
+              <div style={{ font: 'var(--text-label-md)', color: 'var(--color-brand)' }}>Conectado ✅</div>
+              <Button
+                variant="secondary"
+                fullWidth
+                disabled={disconnectTelegram.isPending}
+                onClick={() => disconnectTelegram.mutate()}
+              >
+                {disconnectTelegram.isPending ? 'Desconectando…' : 'Desconectar Telegram'}
+              </Button>
+            </>
+          ) : telegramLink ? (
+            <>
+              <a
+                href={telegramLink}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'block', wordBreak: 'break-all', font: 'var(--text-body-sm)', color: 'var(--color-text-link)',
+                  background: 'var(--color-bg-surface-2)', borderRadius: 'var(--radius-md)', padding: '10px 12px',
+                }}
+              >
+                {telegramLink}
+              </a>
+              <div style={{ font: 'var(--text-caption)', color: 'var(--color-text-tertiary)' }}>
+                Abrí este link en tu teléfono para vincular tu cuenta (vence en 10 minutos).
+              </div>
+            </>
+          ) : (
+            <Button
+              variant="secondary"
+              fullWidth
+              disabled={generateTelegramLink.isPending}
+              onClick={() => generateTelegramLink.mutate(undefined, { onSuccess: setTelegramLink })}
+            >
+              {generateTelegramLink.isPending ? 'Generando…' : 'Conectar Telegram'}
+            </Button>
+          )}
         </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>

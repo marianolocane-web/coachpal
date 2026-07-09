@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useArchiveDiaryEntry, useDiaryComments, useDiaryEntry, useDiaryMessages, useAddDiaryComment } from '../lib/data/hooks';
 import { formatDDMMYYYY, parseIsoDate } from '../lib/data/dateUtils';
@@ -67,7 +67,16 @@ export function DiaryDetailScreen() {
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 var(--space-5) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-        {entry.status === 'archived' && <Badge variant="neutral">Archivada</Badge>}
+        {(entry.status === 'archived' || entry.source === 'telegram') && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            {entry.status === 'archived' && <Badge variant="neutral">Archivada</Badge>}
+            {entry.source === 'telegram' && (
+              <Badge variant="neutral" icon={<Send size={11} />}>
+                vía Telegram
+              </Badge>
+            )}
+          </div>
+        )}
 
         {entry.tags.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

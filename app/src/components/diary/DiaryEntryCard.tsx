@@ -1,3 +1,4 @@
+import { Send } from 'lucide-react';
 import type { DiaryEntry } from '../../lib/data/types';
 import { formatDDMM, parseIsoDate } from '../../lib/data/dateUtils';
 import { Badge } from '../feedback/Badge';
@@ -40,7 +41,14 @@ export function DiaryEntryCard({ entry, onClick }: { entry: DiaryEntry; onClick:
           {entry.moodEmoji || '📝'}
         </div>
       </div>
-      <div style={{ font: 'var(--text-caption)', color: 'var(--color-text-tertiary)' }}>{formatDDMM(parseIsoDate(entry.entryDate))}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, font: 'var(--text-caption)', color: 'var(--color-text-tertiary)' }}>
+        <span>{formatDDMM(parseIsoDate(entry.entryDate))}</span>
+        {entry.source === 'telegram' && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <Send size={11} /> vía Telegram
+          </span>
+        )}
+      </div>
       {entry.tags.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {entry.tags.map((t) => (
