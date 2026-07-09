@@ -2,6 +2,7 @@ function TabBar({ active, onChange }) {
   const items = [
     { key: 'home', label: 'Hoy', icon: '⌂' },
     { key: 'stats', label: 'Progreso', icon: '◔' },
+    { key: 'diary', label: 'Diario', icon: '▤' },
     { key: 'profile', label: 'Perfil', icon: '○' },
   ];
   return (
