@@ -182,3 +182,97 @@ export function unitFromRow(row: any): Unit {
 export function moodFromRow(row: any): DayMood {
   return { id: row.id, userId: row.user_id, logDate: row.log_date, emoji: row.emoji, moodTags: row.mood_tags || [] };
 }
+
+// ---- Diario AI ----
+
+export type DiaryEntryStatus = 'in_progress' | 'active' | 'archived';
+export type DiaryMessageRole = 'user' | 'assistant';
+export type DiaryMessageContentType = 'text' | 'audio';
+
+export interface DiaryEntry {
+  id: string;
+  userId: string;
+  status: DiaryEntryStatus;
+  title: string | null;
+  entryDate: string;
+  summaryMarkdown: string | null;
+  transcriptMarkdown: string | null;
+  moodEmoji: string | null;
+  tags: string[];
+  createdAt: string;
+  finalizedAt: string | null;
+  archivedAt: string | null;
+}
+
+export interface DiaryMessage {
+  id: string;
+  entryId: string;
+  role: DiaryMessageRole;
+  contentType: DiaryMessageContentType;
+  textContent: string | null;
+  audioStoragePath: string | null;
+  createdAt: string;
+}
+
+export interface DiaryComment {
+  id: string;
+  entryId: string;
+  userId: string;
+  comment: string;
+  createdAt: string;
+}
+
+export interface DiarySemanticMatch {
+  id: string;
+  title: string;
+  summaryMarkdown: string;
+  entryDate: string;
+  moodEmoji: string | null;
+  tags: string[];
+  similarity: number;
+}
+
+export function diaryEntryFromRow(row: any): DiaryEntry {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    status: row.status,
+    title: row.title,
+    entryDate: row.entry_date,
+    summaryMarkdown: row.summary_markdown,
+    transcriptMarkdown: row.transcript_markdown,
+    moodEmoji: row.mood_emoji,
+    tags: row.tags || [],
+    createdAt: row.created_at,
+    finalizedAt: row.finalized_at,
+    archivedAt: row.archived_at,
+  };
+}
+
+export function diaryMessageFromRow(row: any): DiaryMessage {
+  return {
+    id: row.id,
+    entryId: row.entry_id,
+    role: row.role,
+    contentType: row.content_type,
+    textContent: row.text_content,
+    audioStoragePath: row.audio_storage_path,
+    createdAt: row.created_at,
+  };
+}
+
+export function diaryCommentFromRow(row: any): DiaryComment {
+  return { id: row.id, entryId: row.entry_id, userId: row.user_id, comment: row.comment, createdAt: row.created_at };
+}
+
+export function diarySemanticMatchFromRow(row: any): DiarySemanticMatch {
+  return {
+    id: row.id,
+    title: row.title,
+    summaryMarkdown: row.summary_markdown,
+    entryDate: row.entry_date,
+    moodEmoji: row.mood_emoji,
+    tags: row.tags || [],
+    similarity: row.similarity,
+  };
+}

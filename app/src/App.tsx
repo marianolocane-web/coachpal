@@ -12,6 +12,10 @@ import { CalendarScreen } from './screens/CalendarScreen';
 import { DayDetailScreen } from './screens/DayDetailScreen';
 import { GeneralStatsScreen } from './screens/GeneralStatsScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { DiaryListScreen } from './screens/DiaryListScreen';
+import { DiarySearchScreen } from './screens/DiarySearchScreen';
+import { DiaryConversationScreen } from './screens/DiaryConversationScreen';
+import { DiaryDetailScreen } from './screens/DiaryDetailScreen';
 import { TabBar, type TabKey } from './components/layout/TabBar';
 
 function useOnboardingSeen(userId: string) {
@@ -27,8 +31,14 @@ function useOnboardingSeen(userId: string) {
 function TabsLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const active: TabKey = location.pathname.startsWith('/stats') ? 'stats' : location.pathname.startsWith('/profile') ? 'profile' : 'home';
-  const onChange = (tab: TabKey) => navigate(tab === 'home' ? '/' : `/${tab}`);
+  const active: TabKey = location.pathname.startsWith('/stats')
+    ? 'stats'
+    : location.pathname.startsWith('/diario')
+      ? 'diary'
+      : location.pathname.startsWith('/profile')
+        ? 'profile'
+        : 'home';
+  const onChange = (tab: TabKey) => navigate(tab === 'home' ? '/' : tab === 'diary' ? '/diario' : `/${tab}`);
   return (
     <>
       <Outlet />
@@ -57,6 +67,7 @@ function AuthenticatedApp({ userId }: { userId: string }) {
       <Route element={<TabsLayout />}>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/stats" element={<GeneralStatsScreen />} />
+        <Route path="/diario" element={<DiaryListScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
       </Route>
       <Route path="/habits" element={<HabitsListScreen />} />
@@ -65,6 +76,9 @@ function AuthenticatedApp({ userId }: { userId: string }) {
       <Route path="/habits/:id/edit" element={<AddEditHabitScreen />} />
       <Route path="/calendar" element={<CalendarScreen />} />
       <Route path="/day/:date" element={<DayDetailScreen />} />
+      <Route path="/diario/buscar" element={<DiarySearchScreen />} />
+      <Route path="/diario/nueva" element={<DiaryConversationScreen />} />
+      <Route path="/diario/:id" element={<DiaryDetailScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

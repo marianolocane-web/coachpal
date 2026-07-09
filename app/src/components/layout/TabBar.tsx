@@ -1,6 +1,6 @@
-import { Home, PieChart, CircleUser } from 'lucide-react';
+import { Home, PieChart, BookOpen, CircleUser } from 'lucide-react';
 
-export type TabKey = 'home' | 'stats' | 'profile';
+export type TabKey = 'home' | 'stats' | 'diary' | 'profile';
 
 export interface TabBarProps {
   active: TabKey;
@@ -10,6 +10,7 @@ export interface TabBarProps {
 const items: { key: TabKey; label: string; Icon: typeof Home }[] = [
   { key: 'home', label: 'Hoy', Icon: Home },
   { key: 'stats', label: 'Progreso', Icon: PieChart },
+  { key: 'diary', label: 'Diario', Icon: BookOpen },
   { key: 'profile', label: 'Perfil', Icon: CircleUser },
 ];
 

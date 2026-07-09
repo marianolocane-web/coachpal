@@ -4,8 +4,9 @@ import * as habitsApi from './habitsApi';
 import * as logsApi from './logsApi';
 import * as unitsApi from './unitsApi';
 import * as moodsApi from './moodsApi';
+import * as diarioApi from './diarioApi';
 import { seedDemoData } from './seedDemoData';
-import type { HabitInput } from './types';
+import type { DiaryMessageContentType, DiaryMessageRole, HabitInput } from './types';
 
 export function useHabits() {
   const { user } = useAuth();
@@ -142,5 +143,96 @@ export function useSeedDemoData() {
   return useMutation({
     mutationFn: () => seedDemoData(user!.id),
     onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
+// ---- Diario AI ----
+
+export function useDiaryEntries(status: ('active' | 'archived')[] = ['active']) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['diaryEntries', user?.id, status],
+    queryFn: () => diarioApi.listEntries(user!.id, status),
+    enabled: !!user,
+  });
+}
+
+export function useDiaryEntry(id: string | undefined) {
+  return useQuery({
+    queryKey: ['diaryEntry', id],
+    queryFn: () => diarioApi.getEntry(id!),
+    enabled: !!id,
+  });
+}
+
+export function useDiaryMessages(entryId: string | undefined) {
+  return useQuery({
+    queryKey: ['diaryMessages', entryId],
+    queryFn: () => diarioApi.listMessages(entryId!),
+    enabled: !!entryId,
+  });
+}
+
+export function useDiaryComments(entryId: string | undefined) {
+  return useQuery({
+    queryKey: ['diaryComments', entryId],
+    queryFn: () => diarioApi.listComments(entryId!),
+    enabled: !!entryId,
+  });
+}
+
+export function useStartDiaryEntry() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => diarioApi.startEntry(user!.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['diaryEntries'] }),
+  });
+}
+
+export function useAddDiaryMessage(entryId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { role: DiaryMessageRole; contentType: DiaryMessageContentType; textContent?: string | null; audioStoragePath?: string | null }) =>
+      diarioApi.addMessage({ entryId, ...input }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['diaryMessages', entryId] }),
+  });
+}
+
+export function useArchiveDiaryEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => diarioApi.archiveEntry(id),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['diaryEntries'] });
+      qc.invalidateQueries({ queryKey: ['diaryEntry', id] });
+    },
+  });
+}
+
+export function useAddDiaryComment(entryId: string) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (comment: string) => diarioApi.addComment(entryId, user!.id, comment),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['diaryComments', entryId] }),
+  });
+}
+
+export function useDiarioPersonaPrompt() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['diarioPersonaPrompt', user?.id],
+    queryFn: () => diarioApi.getDiarioPersonaPrompt(user!.id),
+    enabled: !!user,
+  });
+}
+
+export function useSetDiarioPersonaPrompt() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (prompt: string | null) => diarioApi.setDiarioPersonaPrompt(user!.id, prompt),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['diarioPersonaPrompt'] }),
   });
 }

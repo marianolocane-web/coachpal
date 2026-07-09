@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { useHabits, useLogsRange, useSeedDemoData } from '../lib/data/hooks';
+import { useDiarioPersonaPrompt, useHabits, useLogsRange, useSeedDemoData, useSetDiarioPersonaPrompt } from '../lib/data/hooks';
 import { computeLongestStreak } from '../lib/data/stats';
 import { addDays, isoDate, startOfDay } from '../lib/data/dateUtils';
+import { DEFAULT_DIARIO_PERSONA } from '../lib/data/diarioPersonaDefault';
 import { StreakBadge } from '../components/habit/StreakBadge';
 import { Switch } from '../components/forms/Switch';
 import { Button } from '../components/forms/Button';
@@ -18,6 +19,13 @@ export function ProfileScreen() {
   const [reminders, setReminders] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [celebrationSounds, setCelebrationSounds] = useState(true);
+
+  const { data: personaPrompt } = useDiarioPersonaPrompt();
+  const setPersonaPrompt = useSetDiarioPersonaPrompt();
+  const [personaDraft, setPersonaDraft] = useState('');
+  useEffect(() => {
+    setPersonaDraft(personaPrompt || DEFAULT_DIARIO_PERSONA);
+  }, [personaPrompt]);
 
   const logsByHabitId = useMemo(() => {
     const m = new Map<string, typeof logs>();
@@ -72,6 +80,45 @@ export function ProfileScreen() {
             </Button>
           </div>
         )}
+
+        <div style={{ marginTop: 'var(--space-7)', font: 'var(--text-label-md)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wide)' }}>
+          Personalidad del acompañante del Diario
+        </div>
+        <div style={{ marginTop: 'var(--space-3)', background: 'var(--color-bg-surface)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div style={{ font: 'var(--text-body-sm)', color: 'var(--color-text-secondary)' }}>
+            Así se presenta y responde tu acompañante en el Diario AI. Podés ajustar su tono editando este prompt.
+          </div>
+          <textarea
+            value={personaDraft}
+            onChange={(e) => setPersonaDraft(e.target.value)}
+            rows={10}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              resize: 'vertical',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px 14px',
+              font: 'var(--text-body-sm)',
+              fontFamily: 'var(--font-body)',
+              color: 'var(--color-text-primary)',
+              background: 'var(--color-bg-surface-2)',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <Button variant="secondary" fullWidth onClick={() => setPersonaDraft(DEFAULT_DIARIO_PERSONA)}>
+              Restaurar default
+            </Button>
+            <Button
+              variant="primary"
+              fullWidth
+              disabled={setPersonaPrompt.isPending}
+              onClick={() => setPersonaPrompt.mutate(personaDraft === DEFAULT_DIARIO_PERSONA ? null : personaDraft)}
+            >
+              {setPersonaPrompt.isPending ? 'Guardando…' : 'Guardar'}
+            </Button>
+          </div>
+        </div>
 
         <div style={{ marginTop: 'var(--space-6)' }}>
           <Button variant="ghost" fullWidth onClick={() => signOut()}>Cerrar sesión</Button>
