@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useArchiveDiaryEntry, useDiaryComments, useDiaryEntry, useDiaryMessages, useAddDiaryComment } from '../lib/data/hooks';
 import { formatDDMMYYYY, parseIsoDate } from '../lib/data/dateUtils';
@@ -8,6 +8,7 @@ import { Button } from '../components/forms/Button';
 import { Badge } from '../components/feedback/Badge';
 import { IconButton } from '../components/forms/IconButton';
 import { AudioMessagePlayer } from '../components/diary/AudioMessagePlayer';
+import { ChatBubble } from '../components/diary/ChatBubble';
 
 export function DiaryDetailScreen() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export function DiaryDetailScreen() {
   const addComment = useAddDiaryComment(id || '');
   const archiveEntry = useArchiveDiaryEntry();
   const [comment, setComment] = useState('');
+  const [showConversation, setShowConversation] = useState(false);
 
   const audioMessages = useMemo(() => messages.filter((m) => m.contentType === 'audio' && m.audioStoragePath), [messages]);
 
@@ -79,6 +81,35 @@ export function DiaryDetailScreen() {
 
         <div style={{ font: 'var(--text-body-md)', color: 'var(--color-text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
           {entry.summaryMarkdown}
+        </div>
+
+        <div>
+          <button
+            onClick={() => setShowConversation((v) => !v)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              font: 'var(--text-label-md)',
+              color: 'var(--color-brand)',
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            {showConversation ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {showConversation ? 'Ocultar conversación completa' : 'Ver conversación completa'}
+          </button>
+
+          {showConversation && (
+            <div style={{ marginTop: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {messages.map((m) => (
+                <ChatBubble key={m.id} msg={m} />
+              ))}
+            </div>
+          )}
         </div>
 
         {audioMessages.map((m) => (
