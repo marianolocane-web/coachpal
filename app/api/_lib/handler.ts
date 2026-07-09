@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { HttpError } from './supabaseServer';
+import { HttpError } from './supabaseServer.js';
 
 export function withErrorHandling(fn: (req: VercelRequest, res: VercelResponse) => Promise<void>) {
   return async (req: VercelRequest, res: VercelResponse) => {

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { withErrorHandling } from '../_lib/handler';
-import { getSupabaseForRequest, getAuthedUserId, HttpError } from '../_lib/supabaseServer';
-import { callClaudeWithTool, DEFAULT_MODEL } from '../_lib/claude';
-import { embedText } from '../_lib/voyage';
+import { withErrorHandling } from '../_lib/handler.js';
+import { getSupabaseForRequest, getAuthedUserId, HttpError } from '../_lib/supabaseServer.js';
+import { callClaudeWithTool, DEFAULT_MODEL } from '../_lib/claude.js';
+import { embedText } from '../_lib/voyage.js';
 
 interface FinalizeSummaryResult {
   title: string;

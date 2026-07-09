@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { withErrorHandling } from '../_lib/handler';
-import { HttpError } from '../_lib/supabaseServer';
-import { callClaudeWithTool, DEFAULT_MODEL } from '../_lib/claude';
+import { withErrorHandling } from '../_lib/handler.js';
+import { HttpError } from '../_lib/supabaseServer.js';
+import { callClaudeWithTool, DEFAULT_MODEL } from '../_lib/claude.js';
 
 interface PickDayMoodResult {
   day_emoji: string;

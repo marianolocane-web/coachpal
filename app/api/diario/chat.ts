@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { withErrorHandling } from '../_lib/handler';
-import { getSupabaseForRequest, getAuthedUserId, HttpError } from '../_lib/supabaseServer';
-import { buildUserContext } from '../_lib/context';
-import { callClaudeForText, CONVERSATION_MODEL, type ClaudeMessage } from '../_lib/claude';
-import { DEFAULT_DIARIO_PERSONA } from '../_lib/personas';
+import { withErrorHandling } from '../_lib/handler.js';
+import { getSupabaseForRequest, getAuthedUserId, HttpError } from '../_lib/supabaseServer.js';
+import { buildUserContext } from '../_lib/context.js';
+import { callClaudeForText, CONVERSATION_MODEL, type ClaudeMessage } from '../_lib/claude.js';
+import { DEFAULT_DIARIO_PERSONA } from '../_lib/personas.js';
 
 export default withErrorHandling(async (req: VercelRequest, res: VercelResponse) => {
   const { entryId } = (req.body || {}) as { entryId?: string };

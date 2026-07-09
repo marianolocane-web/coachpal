@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { withErrorHandling } from '../_lib/handler';
-import { getSupabaseForRequest, HttpError } from '../_lib/supabaseServer';
-import { transcribeAudio } from '../_lib/groq';
+import { withErrorHandling } from '../_lib/handler.js';
+import { getSupabaseForRequest, HttpError } from '../_lib/supabaseServer.js';
+import { transcribeAudio } from '../_lib/groq.js';
 
 const AUDIO_BUCKET = 'diario-audio';
 

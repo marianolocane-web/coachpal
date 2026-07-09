@@ -1,10 +1,91 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { habitFromRow, logFromRow } from '../../src/lib/data/types';
-import { addDays, isoDate, startOfDay } from '../../src/lib/data/dateUtils';
-import { computeCompletionRate, computeCurrentStreak } from '../../src/lib/data/stats';
-import { embedText } from './voyage';
+import { embedText } from './voyage.js';
 
 const CONTEXT_LOOKBACK_DAYS = 14;
+
+// Self-contained on purpose: this file is bundled into a Vercel Node
+// function, a different build target than the Vite frontend, so it does not
+// import from `src/lib/data/*` (kept those two build targets fully decoupled
+// after hitting an ERR_MODULE_NOT_FOUND from mixing them).
+
+interface HabitRow {
+  id: string;
+  name: string;
+  days: number[];
+  created_at: string;
+}
+
+interface HabitLogRow {
+  habit_id: string;
+  log_date: string;
+  done: boolean;
+  comment: string | null;
+}
+
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function startOfDay(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+/** Monday-first weekday index: 0=L 1=M 2=X 3=J 4=V 5=S 6=D — matches `habits.days` in the schema. */
+function mondayFirstWeekday(d: Date): number {
+  return (d.getDay() + 6) % 7;
+}
+
+function isScheduledOn(habit: HabitRow, date: Date): boolean {
+  return habit.days.includes(mondayFirstWeekday(date));
+}
+
+function computeCurrentStreak(habit: HabitRow, logs: HabitLogRow[], today: Date): number {
+  const byDate = new Map(logs.map((l) => [l.log_date, l]));
+  let cursor = startOfDay(today);
+  const todayLog = byDate.get(isoDate(cursor));
+  if (isScheduledOn(habit, cursor) && !todayLog) cursor = addDays(cursor, -1);
+  let streak = 0;
+  const createdAt = startOfDay(new Date(habit.created_at));
+  for (let i = 0; i < 3650; i++) {
+    if (startOfDay(cursor).getTime() < createdAt.getTime()) break;
+    if (!isScheduledOn(habit, cursor)) {
+      cursor = addDays(cursor, -1);
+      continue;
+    }
+    const log = byDate.get(isoDate(cursor));
+    if (log?.done) {
+      streak += 1;
+      cursor = addDays(cursor, -1);
+      continue;
+    }
+    break;
+  }
+  return streak;
+}
+
+function computeCompletionRate(habit: HabitRow, logs: HabitLogRow[], from: Date, to: Date, today: Date): number {
+  const byDate = new Map(logs.map((l) => [l.log_date, l]));
+  const createdAt = startOfDay(new Date(habit.created_at));
+  let total = 0;
+  let done = 0;
+  for (let d = startOfDay(from); d.getTime() <= startOfDay(to).getTime(); d = addDays(d, 1)) {
+    if (d.getTime() < createdAt.getTime() || !isScheduledOn(habit, d)) continue;
+    const isToday = isoDate(d) === isoDate(today);
+    const log = byDate.get(isoDate(d));
+    if (isToday && !log) continue;
+    total += 1;
+    if (log?.done) done += 1;
+  }
+  return total ? done / total : 0;
+}
 
 /**
  * Assembles the shared "one brain" context: recent habits/streaks, recent
@@ -22,8 +103,13 @@ export async function buildUserContext(
   const todayIso = isoDate(today);
 
   const [habitsRes, logsRes, moodsRes, recentEntriesRes] = await Promise.all([
-    supabase.from('habits').select('*').eq('user_id', userId).is('deleted_at', null).eq('status', 'Activo'),
-    supabase.from('habit_logs').select('*').eq('user_id', userId).gte('log_date', fromIso).lte('log_date', todayIso),
+    supabase.from('habits').select('id, name, days, created_at').eq('user_id', userId).is('deleted_at', null).eq('status', 'Activo'),
+    supabase
+      .from('habit_logs')
+      .select('habit_id, log_date, done, comment')
+      .eq('user_id', userId)
+      .gte('log_date', fromIso)
+      .lte('log_date', todayIso),
     supabase.from('day_moods').select('log_date, emoji').eq('user_id', userId).gte('log_date', fromIso).lte('log_date', todayIso),
     supabase
       .from('diario_entries')
@@ -34,11 +120,11 @@ export async function buildUserContext(
       .limit(5),
   ]);
 
-  const habits = (habitsRes.data || []).map(habitFromRow);
-  const logs = (logsRes.data || []).map(logFromRow);
+  const habits = (habitsRes.data || []) as HabitRow[];
+  const logs = (logsRes.data || []) as HabitLogRow[];
 
   const habitLines = habits.map((h) => {
-    const habitLogs = logs.filter((l) => l.habitId === h.id);
+    const habitLogs = logs.filter((l) => l.habit_id === h.id);
     const streak = computeCurrentStreak(h, habitLogs, today);
     const rate = computeCompletionRate(h, habitLogs, addDays(today, -6), today, today);
     return `- ${h.name}: racha actual ${streak} día(s), ${Math.round(rate * 100)}% de cumplimiento en los últimos 7 días`;
@@ -46,10 +132,10 @@ export async function buildUserContext(
 
   const commentLines = logs
     .filter((l) => l.comment)
-    .sort((a, b) => (a.logDate < b.logDate ? 1 : -1))
+    .sort((a, b) => (a.log_date < b.log_date ? 1 : -1))
     .map((l) => {
-      const habit = habits.find((h) => h.id === l.habitId);
-      return `- ${l.logDate} (${habit?.name ?? 'hábito'}): "${l.comment}"`;
+      const habit = habits.find((h) => h.id === l.habit_id);
+      return `- ${l.log_date} (${habit?.name ?? 'hábito'}): "${l.comment}"`;
     });
 
   const moodLines = (moodsRes.data || [])
