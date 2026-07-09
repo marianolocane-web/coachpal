@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mic, Paperclip, Send, Square, X } from 'lucide-react';
+import { Check, Mic, Paperclip, Send, X } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useAddDiaryMessage, useDiaryMessages, useStartDiaryEntry } from '../lib/data/hooks';
 import * as diarioApi from '../lib/data/diarioApi';
@@ -186,7 +186,7 @@ export function DiaryConversationScreen() {
             </span>
             <div style={{ flex: 1 }} />
             <IconButton label="Cancelar grabación" size="sm" onClick={cancelRecording} icon={<X size={15} />} />
-            <IconButton label="Detener grabación" size="sm" variant="brand" onClick={finishRecording} icon={<Square size={15} />} />
+            <IconButton label="Terminar y enviar audio" size="sm" variant="brand" onClick={finishRecording} icon={<Check size={15} />} />
           </div>
         ) : (
           <div

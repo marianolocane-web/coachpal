@@ -1,7 +1,61 @@
-import { Play } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Pause, Play } from 'lucide-react';
 import type { DiaryMessage } from '../../lib/data/types';
+import { getAudioSignedUrl } from '../../lib/data/diarioApi';
 
-export function ChatBubble({ msg }: { msg: Pick<DiaryMessage, 'role' | 'contentType' | 'textContent'> }) {
+type ChatBubbleMessage = Pick<DiaryMessage, 'role' | 'contentType' | 'textContent' | 'audioStoragePath'>;
+
+function AudioPlayButton({ storagePath }: { storagePath: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const toggle = async () => {
+    if (!url) {
+      const signed = await getAudioSignedUrl(storagePath);
+      setUrl(signed);
+      return; // plays once the <audio> element mounts with the src, see below
+    }
+    const el = audioRef.current;
+    if (!el) return;
+    if (playing) el.pause();
+    else void el.play();
+  };
+
+  return (
+    <>
+      <button
+        onClick={toggle}
+        aria-label={playing ? 'Pausar nota de voz' : 'Reproducir nota de voz'}
+        style={{
+          border: 'none',
+          background: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          color: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {playing ? <Pause size={14} /> : <Play size={14} />}
+      </button>
+      {url && (
+        <audio
+          ref={audioRef}
+          src={url}
+          autoPlay
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+          style={{ display: 'none' }}
+        />
+      )}
+    </>
+  );
+}
+
+export function ChatBubble({ msg }: { msg: ChatBubbleMessage }) {
   const isUser = msg.role === 'user';
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
@@ -36,9 +90,9 @@ export function ChatBubble({ msg }: { msg: Pick<DiaryMessage, 'role' | 'contentT
           font: 'var(--text-body-md)',
         }}
       >
-        {msg.contentType === 'audio' ? (
+        {msg.contentType === 'audio' && msg.audioStoragePath ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Play size={14} />
+            <AudioPlayButton storagePath={msg.audioStoragePath} />
             <span>{msg.textContent}</span>
           </div>
         ) : (
